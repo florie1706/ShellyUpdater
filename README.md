@@ -1,6 +1,8 @@
 ShellyUpdater
 
-Update your shelly devices thru this script. You will need the following packages to be installed in advance:
+Update your shelly devices thru this script.
+Tested on Ubuntu 18.04 with a 192.-Network.
+You will need the following packages to be installed in advance:
 - avahi-utils
 - jq
 - webserver (which is running to server zip file for the firmware update
