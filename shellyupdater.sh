@@ -83,9 +83,9 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep shelly 
 			fi
 #### send firmware update to shelly ####
 			echo "Starte Firmware-Update bei $SHELLYIP ($SHELLYTYPE) "
-			curl -s http://$USER:$PW@$SHELLYIP/ota?url=$WWWURL/$SHELLYTYPE-$NEWFIRMWAREZIP.zip >> /tmp/test.txt
+			curl -s http://$USER:$PW@$SHELLYIP/ota?url=$WWWURL/$SHELLYTYPE-$NEWFIRMWAREZIP.zip > /dev/null 2>&1
 		else
-			echo "$SHELLYIP ($SHELLYTYPE) ist ${green}up-to-date${reset}." 2>&1
+			echo "$SHELLYIP ($SHELLYTYPE) ist ${green}up-to-date${reset}."
         	fi
 	else
                 echo "${red}Für $SHELLYIP konnte keine Firmware-Information abgerufen werden.${reset}"
