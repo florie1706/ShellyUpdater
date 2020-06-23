@@ -53,7 +53,7 @@ USER=admin
 PW=secret
 
 #### check for availible shellies in your network ####
-for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep shelly | grep 192 | cut -d';' -f8)
+for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep shelly | grep 192 | cut -d';' -f8 | sort -n)
 	do
 		SHELLYTYPE=$(curl -s http://$USER:$PW@$SHELLYIP/settings | jq .device.type | cut -d'"' -f2)
 		OLDFIRMWARE=$(curl -s http://$USER:$PW@$SHELLYIP/settings | jq .fw | cut -d '"' -f2 | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
@@ -71,21 +71,21 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep shelly 
 		OLDFIRMWARESUM=$(((OLDFIRMWAREPART1 * 1000) + (OLDFIRMWAREPART2 * 100) + OLDFIRMWAREPART3))
 		NEWFIRMWARESUM=$(((NEWFIRMWAREPART1 * 1000) + (NEWFIRMWAREPART2 * 100) + NEWFIRMWAREPART3))
 		if [ $OLDFIRMWARESUM -lt $NEWFIRMWARESUM ] ; then
-			echo "$SHELLYIP ($SHELLYTYPE) ${yellow}Update auf Version ${blue}$NEWFIRMWARE ${yellow}vorhanden${reset}."
+			echo "$SHELLYIP ($SHELLYTYPE) ${yellow}Update von v$OLDFIRMWARE auf Version ${blue}v$NEWFIRMWARE ${yellow}vorhanden${reset}."
 			FIRMWAREURL=$(curl -s https://api.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].url' | cut -d '"' -f2)
 			NEWFIRMWAREZIP=$(curl -s https://api.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].version' | cut -d '"' -f2 | cut -d '/' -f2 | cut -d '@' -f1)
 #### download firmware to server or skip if it is already there ####
 			if [ -f $WWWDIR/$SHELLYTYPE-$NEWFIRMWAREZIP.zip ] ; then
 				echo "Firmware-Datei bereits vorhanden, überspringe Download"
 			else
-				echo "Lade Firmware-Datei herunter."
+				echo "Lade Firmware-Datei (v$NEWFIRMWARE) für $SHELLYTYP herunter."
 				curl -s $FIRMWAREURL --output $WWWDIR/$SHELLYTYPE-$NEWFIRMWAREZIP.zip
 			fi
 #### send firmware update to shelly ####
 			echo "Starte Firmware-Update bei $SHELLYIP ($SHELLYTYPE) "
 			curl -s http://$USER:$PW@$SHELLYIP/ota?url=$WWWURL/$SHELLYTYPE-$NEWFIRMWAREZIP.zip > /dev/null 2>&1
 		else
-			echo "$SHELLYIP ($SHELLYTYPE) ist ${green}up-to-date${reset}."
+			echo "$SHELLYIP ($SHELLYTYPE) ist ${green}up-to-date${reset} (v$OLDFIRMWARE)."
         	fi
 	else
                 echo "${red}Für $SHELLYIP konnte keine Firmware-Information abgerufen werden.${reset}"
