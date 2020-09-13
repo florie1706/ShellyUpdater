@@ -82,7 +82,7 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
 	NEWFIRMWARE=$(echo $NEWFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
 	NEWFIRMWARECHECKSUM=$(echo $NEWFIRMWAREFULL | cut -d '@' -f2)
 #### if no firmware version or shelly type is determinated an error message will be shown ####
-	if [ -n $OLDFIRMWARE ] && [ -n $SHELLYTYPE ] ; then
+	if [ -n "$OLDFIRMWARE" ] && [ -n "$SHELLYTYPE" ] ; then
 #### check for newer firmware availible ####
 		OLDFIRMWAREPART1=$(echo $OLDFIRMWARE | cut -d '.' -f1)
 		OLDFIRMWAREPART2=$(echo $OLDFIRMWARE | cut -d '.' -f2)
