@@ -51,6 +51,7 @@ WWWURL=http://192.0.0.0
 #### shelly login credicals ####
 USER=admin
 PW=secret
+AUTH=$(printf "%s\n" "$USER:$PW" | base64 --wrap 0 )
 
 #### Release version ###
 TRUNK=BETA
@@ -67,8 +68,8 @@ ECHOTRUNK=0
 for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly | grep 192 | cut -d ';' -f8 | sort -n)
         do
         UPDATE=0
-        SHELLYTYPE=$(curl -s http://$USER:$PW@$SHELLYIP/settings | jq .device.type | cut -d'"' -f2)
-        OLDFIRMWAREFULL=$(curl -s http://$USER:$PW@$SHELLYIP/settings | jq .fw | cut -d '"' -f2)
+        SHELLYTYPE=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .device.type | cut -d'"' -f2)
+        OLDFIRMWAREFULL=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .fw | cut -d '"' -f2)
         OLDFIRMWARE=$(echo $OLDFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
         STABLENEWFIRMWAREFULL=$(curl -s https://api.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].version' | cut -d '"' -f2)
         if [ $TRUNK = "STABLE" ] ; then
@@ -99,7 +100,7 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
                 NEWFIRMWARECHECKSUM=$(echo $NEWFIRMWAREFULL | cut -d '@' -f2)
                 NEWFIRMWAREDATETIME=$(echo $NEWFIRMWAREFULL | cut -d '/' -f1)
 #### check if newer version is availible and if there is a newer version then your choosen trunk on STABLE/PRE when PRE/BETA was selected) for new shipped devices the current firmware will be installed ####
-                if ([ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && ([ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ])) || [ $OLDFIRMWARECHECKSUM > 99999 ] ; then
+                if [ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && ([ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ]) ; then
                         UPDATE=$TRUNK
                         if [ $TRUNK != "STABLE" ] ; then
                                 STABLENEWFIRMWARE=$(echo $STABLENEWFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
@@ -108,36 +109,36 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
                                 STABLENEWFIRMWAREPART3=$(echo $STABLENEWFIRMWARE | cut -d '.' -f3)
                                 STABLENEWFIRMWARESUM=$(((STABLENEWFIRMWAREPART1 * 10000) + (STABLENEWFIRMWAREPART2 * 100) + STABLENEWFIRMWAREPART3))
                                 STABLENEWFIRMWAREDATETIME=$(echo $STABLENEWFIRMWAREFULL | cut -d '/' -f1)
-                                if [ $STABLENEWFIRMWARESUM -eq $NEWFIRMWARESUM ] || [ $STABLENEWFIRMWAREDATETIME != $NEWFIRMWAREDATETIME ] ; then
+                                if [ $STABLENEWFIRMWARESUM -ge $NEWFIRMWARESUM ] && [ $STABLENEWFIRMWAREDATETIME != $NEWFIRMWAREDATETIME ] ; then
                                         UPDATE=STABLE
                                         NEWFIRMWARE=$STABLENEWFIRMWARE
                                 fi
                         fi
-                        if [ $TRUNK = "BETA" ] ; then
+                        if [ $TRUNK != "PRE" ] ; then
                                 PRENEWFIRMWARE=$(echo $PRENEWFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
                                 PRENEWFIRMWAREPART1=$(echo $PRENEWFIRMWARE | cut -d '.' -f1)
                                 PRENEWFIRMWAREPART2=$(echo $PRENEWFIRMWARE | cut -d '.' -f2)
                                 PRENEWFIRMWAREPART3=$(echo $PRENEWFIRMWARE | cut -d '.' -f3)
                                 PRENEWFIRMWARESUM=$(((PRENEWFIRMWAREPART1 * 10000) + (PRENEWFIRMWAREPART2 * 100) + PRENEWFIRMWAREPART3))
                                 PRENEWFIRMWAREDATETIME=$(echo $PRENEWFIRMWAREFULL | cut -d '/' -f1)
-                                if [ $PRENEWFIRMWARESUM -eq $NEWFIRMWARESUM ] || [ $PRENEWFIRMWAREDATETIME != $NEWFIRMWAREDATETIME ] ; then
+                                if [ $PRENEWFIRMWARESUM -ge $NEWFIRMWARESUM ] && [ $PRENEWFIRMWAREDATETIME != $NEWFIRMWAREDATETIME ] ; then
                                         UPDATE=PRE
                                         NEWFIRMWARE=$PRENEWFIRMWARE
                                 fi
                         fi
                 fi
-                if [ $UPDATE != $TRUNK ] && (([ $UPDATE = "PRE" ] && [ $PRENEWFIRMWAREDATETIME = $OLDFIRMWAREDATETIME ]) || ([ $UPDATE = "BETA" ] && [ $BETANEWFIRMWAREDATETIME = $OLDFIRMWAREDATETIME ])) ; then
+                if ([ $UPDATE != $TRUNK ] && ([ $UPDATE = "PRE" ] && [ $PRENEWFIRMWAREDATETIME = $OLDFIRMWAREDATETIME ])) || ([ $UPDATE = "BETA" ] && [ $NEWFIRMWAREDATETIME = $OLDFIRMWAREDATETIME ]) ; then
                         UPDATE=0
                 fi
                 if [ $UPDATE != 0 ] ; then
-                        if [ $ECHOTRUNK -eq 0 ] ; then
+                        if [ $ECHOTRUNK -eq 0 ] && [ $UPDATE != $TRUNK ]; then
                                 echo "${yellow}$UPDATE-Kanal hat neuere Firmware, $UPDATE wird nun verwendet.${reset}"
                                 ECHOTRUNK=1
                         fi
                         echo "$SHELLYIP ($SHELLYTYPE) ${yellow}Update von v$OLDFIRMWARE auf Version ${cyan}v$NEWFIRMWARE ${yellow}vorhanden${reset}."
                         if [ $UPDATE = "BETA" ] ; then
                                 NEWFIRMWAREURL=$(curl -s https://repo.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].beta_url' | cut -d '"' -f2)
-                                NEWFIRMWAREFULL=$STABLENEWFIRMWAREFULL
+                                NEWFIRMWAREFULL=$BETANEWFIRMWAREFULL
                         elif [ $UPDATE = "PRE" ] ; then
                                 NEWFIRMWAREURL=$(curl -s https://repo.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].url' | cut -d '"' -f2)
                                 NEWFIRMWAREFULL=$PRENEWFIRMWAREFULL
@@ -149,12 +150,12 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
                         if [ -f $WWWDIR/$SHELLYTYPE-$NEWFIRMWAREZIP.zip ] ; then
                                 echo "Firmware-Datei bereits vorhanden, überspringe Download"
                         else
-                                echo "Lade Firmware-Datei (v$NEWFIRMWARE) für $SHELLYTYP herunter."
+                                echo "Lade Firmware-Datei (v$NEWFIRMWARE) für $SHELLYTYPE herunter."
                                 curl -s $NEWFIRMWAREURL --output $WWWDIR/$SHELLYTYPE-$NEWFIRMWAREZIP.zip
                         fi
 #### send firmware update to shelly ####
                         echo "Starte Firmware-Update bei $SHELLYIP ($SHELLYTYPE) "
-                        curl -s http://$USER:$PW@$SHELLYIP/ota?url=$WWWURL/$SHELLYTYPE-$NEWFIRMWAREZIP.zip > /dev/null 2>&1
+                        curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/ota?url=$WWWURL/$SHELLYTYPE-$NEWFIRMWAREZIP.zip > /dev/null 2>&1
                 else
                         echo "$SHELLYIP ($SHELLYTYPE) ist ${green}up-to-date${reset} (v$OLDFIRMWARE)."
                 fi
