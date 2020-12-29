@@ -68,9 +68,14 @@ ECHOTRUNK=0
 for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly | grep 192 | cut -d ';' -f8 | sort -n)
         do
         UPDATE=0
-        SHELLYTYPE=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .device.type | cut -d'"' -f2)
-        OLDFIRMWAREFULL=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .fw | cut -d '"' -f2)
-        OLDFIRMWARE=$(echo $OLDFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
+        OLDFIRMWAREAUTHTEST=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | grep 'Unauthorized' | cut -d ' ' -f2)
+        if [ -z $OLDFIRMWAREAUTHTEST ] ; then
+                SHELLYTYPE=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .device.type | cut -d '"' -f2)
+                OLDFIRMWAREFULL=$(curl -s --header "Authorization: Basic $AUTH" http://$SHELLYIP/settings | jq .fw | cut -d '"' -f2)
+                OLDFIRMWARE=$(echo $OLDFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
+        else
+                OLDFIRMWARE=""
+        fi
         STABLENEWFIRMWAREFULL=$(curl -s https://api.shelly.cloud/files/firmware | jq '.data["'$SHELLYTYPE'"].version' | cut -d '"' -f2)
         if [ $TRUNK = "STABLE" ] ; then
                 NEWFIRMWAREFULL=$STABLENEWFIRMWAREFULL
@@ -100,7 +105,7 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
                 NEWFIRMWARECHECKSUM=$(echo $NEWFIRMWAREFULL | cut -d '@' -f2)
                 NEWFIRMWAREDATETIME=$(echo $NEWFIRMWAREFULL | cut -d '/' -f1)
 #### check if newer version is availible and if there is a newer version then your choosen trunk on STABLE/PRE when PRE/BETA was selected) for new shipped devices the current firmware will be installed ####
-                if [ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && ([ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ]) ; then
+                if [ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && ([ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ]) || ([ $PRENEWFIRMWAREFULL != $FIRMWAREFULL ] || [ $STABLENEWFIRMWAREFULL != $FIRMWAREFULL ]); then
                         UPDATE=$TRUNK
                         if [ $TRUNK != "STABLE" ] ; then
                                 STABLENEWFIRMWARE=$(echo $STABLENEWFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
