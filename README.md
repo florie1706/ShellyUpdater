@@ -5,7 +5,7 @@ Tested on Ubuntu 20.04 with a 192.-Network.
 You will need the following packages to be installed in advance:
 - avahi-utils
 - jq
-- webserver (which is running to server zip file for the firmware update
+- webserver (which is running to serve the OTA-zip file for the firmware update)
 
 Please set these variables first:
 - WWWDIR where the firmware update has to be stored
