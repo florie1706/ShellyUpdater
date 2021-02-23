@@ -14,4 +14,4 @@ Please set these variables first:
 - PW password, should be the same on every device within your network
 - TRUNK set to STABLE, PRE or BETA to check for the desired release channel
 
-Florie1706, 2020
+Florie1706, 2021
