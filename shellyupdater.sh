@@ -14,7 +14,7 @@
 #  - USER shelly user, should be the same on every device within your network
 #  - PW password, should be the same on every device within your network
 #
-#  Florie1706, 2020
+#  Florie1706, 2021
 #
 ########################################################################################
 #
@@ -105,7 +105,7 @@ for SHELLYIP in $(avahi-browse -d local -k -v -t -r -p _http._tcp | grep helly |
                 NEWFIRMWARECHECKSUM=$(echo $NEWFIRMWAREFULL | cut -d '@' -f2)
                 NEWFIRMWAREDATETIME=$(echo $NEWFIRMWAREFULL | cut -d '/' -f1)
 #### check if newer version is availible and if there is a newer version then your choosen trunk on STABLE/PRE when PRE/BETA was selected) for new shipped devices the current firmware will be installed ####
-                if [ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && ([ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ]) || ([ $PRENEWFIRMWAREFULL != $FIRMWAREFULL ] || [ $STABLENEWFIRMWAREFULL != $FIRMWAREFULL ]); then
+                if [ $NEWFIRMWARESUM -ge $OLDFIRMWARESUM ] && { [ $NEWFIRMWARECHECKSUM != $OLDFIRMWARECHECKSUM ] || [ $NEWFIRMWAREDATETIME != $OLDFIRMWAREDATETIME ] || [ $PRENEWFIRMWAREFULL != $OLDFIRMWAREFULL ] || [ $STABLENEWFIRMWAREFULL != $OLDFIRMWAREFULL ]; }; then
                         UPDATE=$TRUNK
                         if [ $TRUNK != "STABLE" ] ; then
                                 STABLENEWFIRMWARE=$(echo $STABLENEWFIRMWAREFULL | cut -d 'v' -f2 | cut -d '@' -f1 | cut -d '-' -f1)
