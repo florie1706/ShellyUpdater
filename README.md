@@ -11,8 +11,9 @@ Please set these variables first:
 - WWWDIR where the firmware update has to be stored
 - WWWURL URL where your webserver can be reached from any device within your network
 
-Call the script with one or more of theses arguments:
+## Call the script with one or more of theses arguments:
 
+```
 -u, --user=USER            enter USER for authentification, standard = admin
 -p, --password=PASSWORD    enter PASSWORD for authentification
 -sip, --shelly-ip=IP       Just check/upgrade one single shelly by IP
@@ -21,5 +22,6 @@ Call the script with one or more of theses arguments:
 --force                    Force downgrade to selected trunk version
 --debug                    Show debug log of this script.
 -h, --help                 Prints this message
+```
 
 Florie1706, 2021
