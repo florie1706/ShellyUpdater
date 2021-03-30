@@ -3,7 +3,7 @@ ShellyUpdater
 Update your shelly devices thru this script.
 Tested on Ubuntu 20.04 with a 192.-Network.
 
-##You will need the following packages to be installed in advance:
+## You will need the following packages to be installed in advance:
 ```
 - avahi-utils
 - jq
