@@ -10,8 +10,16 @@ You will need the following packages to be installed in advance:
 Please set these variables first:
 - WWWDIR where the firmware update has to be stored
 - WWWURL URL where your webserver can be reached from any device within your network
-- USER shelly user, should be the same on every device within your network
-- PW password, should be the same on every device within your network
-- TRUNK set to STABLE, PRE or BETA to check for the desired release channel
+
+Call the script with one or more of theses arguments:
+
+-u, --user=USER            enter USER for authentification, standard = admin
+-p, --password=PASSWORD    enter PASSWORD for authentification
+-sip, --shelly-ip=IP       Just check/upgrade one single shelly by IP
+-st, --shelly-type=TYPE    Just check/upgrade one specific TYPE of shellies
+-t, --trunk=TRUNK          select trunk (STABLE, PRE or BETA)
+--force                    Force downgrade to selected trunk version
+--debug                    Show debug log of this script.
+-h, --help                 Prints this message
 
 Florie1706, 2021
