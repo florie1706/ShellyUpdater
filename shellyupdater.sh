@@ -67,11 +67,8 @@ WWWURL=http://192.0.0.0
 
 print_usage()
 {
-echo "Usage: $(basename $0) --firmware=v11_003194.pkg [--soundfile=english.pkg|
---public-key=id_rsa.pub|--timezone=Europe/Berlin|--disable-firmware-updates|
---dummycloud-path=PATH|--valetudo-path=PATH|--replace-adbd|--rrlogd-patcher=PATCHER|
---disable-logs|--hostname=HOSTNAME|--enable-ruby|--ntpserver=ADDRESS|
---unprovisioned|--help]"
+echo "Usage: $(basename $0) -p=PASSWORD [-u=USER|-sip=IP|-st=TYPE|-t=TRUNK|
+--force|--debug|--h]"
 }
 
 print_help()
