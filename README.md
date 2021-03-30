@@ -1,4 +1,4 @@
-ShellyUpdater
+### ShellyUpdater
 
 Update your shelly devices thru this script.
 Tested on Ubuntu 20.04 with a 192.-Network.
